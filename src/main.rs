@@ -45,11 +45,21 @@ fn main() {
             "echo" => {
                 println!("{}",args.join(" "));
             }
+            "pwd" => {
+                match std::env::current_dir(){
+                    Ok(path) => {
+                        println!("{}", path.display());
+                    }
+                    Err(e) => {
+                        eprintln!("pwd: {}",e);
+                    }
+                }
+            }
             "type" => {
                 if args.is_empty(){
                 }else{
                     let target = args[0];
-                    if target == "echo" || target == "exit" || target == "type"{
+                    if target == "echo" || target == "exit" || target == "type" || target == "pwd"{
                         println!("{} is a shell builtin",target);
                     }else if let Some(path) = get_executable_path(target){
                         println!("{} is {}",target,path.display());//this is the path of the file
