@@ -51,7 +51,7 @@ fn main() {
                     let target = args[0];
                     if target == "echo" || target == "exit" || target == "type"{
                         println!("{} is a shell builtin",target);
-                    }else if let Some(path) = get_executable_path(target){
+                    }else if let Some(path) = get_executable_path(target)
                         println!("{} is {}",target,path.display());//this is the path of the file
                     }else{
                         println!("{}: not found",target);
@@ -59,8 +59,13 @@ fn main() {
                 }
             }
         _ => {
-            println!("{}: command not found",cmd);
+            if get_executable_path(cmd).is_some(){
+                if let Err(e) = std::process::Command:new(cmd).args(args).status(){
+                    eprintln!("Failed to execute process: {}",e);
+                }
+            }else{
+                println!("{}: command not found", cmd);
+            }
         }
     }
-}
 }
