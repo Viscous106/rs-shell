@@ -58,7 +58,6 @@ fn main() {
                     }
                 }
             }
-        }
         _ => {
             println!("{}:command not found",cmd);
         }
