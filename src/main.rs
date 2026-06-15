@@ -59,7 +59,7 @@ fn main() {
                 }
             }
         _ => {
-            println!("{}:command not found",cmd);
+            println!("{}: command not found",cmd);
         }
     }
 }
