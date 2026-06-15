@@ -61,6 +61,8 @@ fn main() {
                     if let Err(_) = std::env::set_current_dir(target_dir){
                         println!("cd: {}: No such file or directory",target_dir);
                     }
+
+                }
             }
             "type" => {
                 if args.is_empty(){
@@ -85,5 +87,4 @@ fn main() {
             }
         }
     }
-
 }
