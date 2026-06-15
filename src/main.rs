@@ -56,12 +56,22 @@ fn main() {
                 }
             }
             "cd" => {
-                if !args.is_empty(){
+                if !args.is_empty() {
                     let target_dir = args[0];
-                    if let Err(_) = std::env::set_current_dir(target_dir){
-                        println!("cd: {}: No such file or directory",target_dir);
-                    }
+                    let resolved_dir = if target_dir == "~" {
+                        std::env::var("HOME").ok()
+                    } else if target_dir.starts_with("~/") {
+                        std::env::var("HOME").ok().map(|home| {
+                            format!("{}{}", home, &target_dir[1..])
+                        })
+                    } else {
+                        None
+                    };
 
+                    let path_to_set = resolved_dir.as_deref().unwrap_or(target_dir);
+                    if let Err(_) = std::env::set_current_dir(path_to_set) {
+                        println!("cd: {}: No such file or directory", target_dir);
+                    }
                 }
             }
             "type" => {
