@@ -55,11 +55,19 @@ fn main() {
                     }
                 }
             }
+            "cd" => {
+                if !args.is_empty(){
+                    let target_dir = args[0];
+                    if let Err(_) = std::env::set_current_dir(target_dir){
+                        println!("cd: {}: No such file or directory",target_dir);
+                    }
+                }
+            }
             "type" => {
                 if args.is_empty(){
                 }else{
                     let target = args[0];
-                    if target == "echo" || target == "exit" || target == "type" || target == "pwd"{
+                    if target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd"{
                         println!("{} is a shell builtin",target);
                     }else if let Some(path) = get_executable_path(target){
                         println!("{} is {}",target,path.display());//this is the path of the file
@@ -78,5 +86,5 @@ fn main() {
             }
         }
     }
-}
+
 }
