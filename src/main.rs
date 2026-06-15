@@ -77,6 +77,7 @@ fn main() {
                     }
                 }
             }
+        }
         _ => {
             if get_executable_path(cmd).is_some(){
                 if let Err(e) = std::process::Command::new(cmd).args(args).status(){
@@ -87,5 +88,4 @@ fn main() {
             }
         }
     }
-}
 }
