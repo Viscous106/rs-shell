@@ -6,6 +6,7 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
     let mut in_double_quote = false;
     let mut in_arg = false;
     let mut escaped = false;
+    let mut dq_escaped = false;
 
     for ch in input.chars(){
         //For escaping :
@@ -23,7 +24,16 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
                 current.push(ch);
             }
         }else if in_double_quote{//For double quote:
-            if ch == '"'{
+            if dq_escaped{
+                match ch {
+                    '"' => current.push('"'),
+                    '\\' => current.push('\\'),
+                    _ => {current.push('\\');current.push(ch);}
+                }
+                dq_escaped = false; 
+            }else if ch == '\\'{
+                dq_escaped = true;
+            }else if ch == '"'{
                 in_double_quote = false;
             }else{
                 current.push(ch);
