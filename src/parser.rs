@@ -1,0 +1,39 @@
+/// Parses the command line input into a list of arguments.
+pub fn parse_arguments(input: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut current = String::new();
+    let mut in_single_quote = false;
+    let mut in_arg = false;
+
+    for ch in input.chars(){
+        if in_single_quote{
+            if ch =='\'' {
+                in_single_quote = false;
+            }else{
+                current.push(ch);
+            }
+        }else{
+            match ch{
+                ' ' | '\t' => {
+                    if in_arg {
+                        args.push(current.clone());
+                        current.clear();
+                        in_arg = false;
+                    }
+                }
+                '\'' => {
+                    in_single_quote = true;
+                    in_arg = true;
+                }
+                _ => {
+                    current.push(ch);
+                    in_arg = true;
+                }
+            }
+        }
+    }
+    if in_arg{
+        args.push(current);
+    }
+    args
+}
