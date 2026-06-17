@@ -1,7 +1,8 @@
 use crate::exec::get_executable_path;
+use std::io::Write;
 
 /// Handles shell builtin commands if matched, returning true. Otherwise returns false.
-pub fn handle_builtin(cmd: &str, args: &[String]) -> bool {
+pub fn handle_builtin(cmd: &str, args: &[String], output: &mut dyn Write) -> bool {
     match cmd {
         "exit" => {
             let code = if args.is_empty() {
@@ -12,13 +13,13 @@ pub fn handle_builtin(cmd: &str, args: &[String]) -> bool {
             std::process::exit(code);
         }
         "echo" => {
-            println!("{}", args.join(" "));
+            writeln!(output,"{}", args.join(" ")).unwrap();
             true
         }
         "pwd" => {
             match std::env::current_dir() {
                 Ok(path) => {
-                    println!("{}", path.display());
+                    writeln!(output,"{}", path.display()).unwrap();
                 }
                 Err(e) => {
                     eprintln!("pwd: {}", e);
@@ -41,7 +42,7 @@ pub fn handle_builtin(cmd: &str, args: &[String]) -> bool {
 
                 let path_to_set = resolved_dir.as_deref().unwrap_or(target_dir);
                 if let Err(_) = std::env::set_current_dir(path_to_set) {
-                    println!("cd: {}: No such file or directory", target_dir);
+                    writeln!(output,"cd: {}: No such file or directory", target_dir).unwrap();
                 }
             }
             true
@@ -50,11 +51,11 @@ pub fn handle_builtin(cmd: &str, args: &[String]) -> bool {
             if !args.is_empty() {
                 let target = &args[0];
                 if is_builtin(target) {
-                    println!("{} is a shell builtin", target);
+                    writeln!(output,"{} is a shell builtin", target).unwrap();
                 } else if let Some(path) = get_executable_path(target) {
-                    println!("{} is {}", target, path.display());
+                    writeln!(output,"{} is {}", target, path.display()).unwrap();
                 } else {
-                    println!("{}: not found", target);
+                    writeln!(output,"{}: not found", target).unwrap();
                 }
             }
             true
