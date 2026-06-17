@@ -30,13 +30,18 @@ pub fn get_executable_path(cmd: &str) -> Option<PathBuf> {
 }
 
 /// Executes an external command.
-pub fn run_external_command(cmd: &str, args: &[String], stdout_file: Option<String>) -> Result<std::process::ExitStatus, std::io::Error> {
+pub fn run_external_command(cmd: &str, args: &[String], stdout_file: Option<String>,stderr_file: Option<String>) -> Result<std::process::ExitStatus, std::io::Error> {
     let stdout = match stdout_file {
+        Some(path) => Stdio::from(File::create(path)?),
+        None       => Stdio::inherit(),
+    };
+    let stderr = match stderr_file {
         Some(path) => Stdio::from(File::create(path)?),
         None       => Stdio::inherit(),
     };
     std::process::Command::new(cmd)
         .args(args)
         .stdout(stdout)
+        .stderr(stderr)
         .status()
 }

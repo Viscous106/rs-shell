@@ -21,23 +21,31 @@ fn main() {
         let _cmd = &args[0];
         let _cmd_args = &args[1..];
         
-        let (args, stdout_redirect) = {
+        let (args, stdout_redirect, stderr_redirect) = {
             let mut clean = Vec::new();
             let mut file = None;
+            let mut stderr_file = None;
             let mut i = 0;
             while i < args.len() {
                 if (args[i] == ">" || args[i] == "1>") && i + 1 < args.len() {
                     file = Some(args[i+1].clone());
+                    i += 2;
+                }else if args[i] == "2>" && i+1 < args.len(){
+                    stderr_file = Some(args[i+1].clone());
                     i += 2;
                 }else{
                     clean.push(args[i].clone());
                     i += 1;
                 }
             }
-            (clean,file)
+            (clean,file,stderr_file)
         };
         let cmd = &args[0];
         let cmd_args = &args[1..];
+        
+        if let Some(ref path) = stderr_redirect {
+            std::fs::File::create(path).unwrap();
+        }
 
         let mut out: Box<dyn Write> = match &stdout_redirect{
             Some(path) => Box::new(std::fs::File::create(path).unwrap()),
@@ -48,7 +56,7 @@ fn main() {
         }
         
         if exec::get_executable_path(cmd).is_some() {
-            if let Err(e) = exec::run_external_command(cmd, cmd_args,stdout_redirect) {
+            if let Err(e) = exec::run_external_command(cmd, cmd_args,stdout_redirect, stderr_redirect) {
                 eprintln!("Failed to execute process: {}", e);
             }
         } else {
