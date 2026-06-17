@@ -5,8 +5,16 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
     let mut in_single_quote = false;
     let mut in_double_quote = false;
     let mut in_arg = false;
+    let mut escaped = false;
 
     for ch in input.chars(){
+        //For escaping :
+        if escaped{
+            current.push(ch);
+            in_arg = true;
+            escaped = false;
+            continue;
+        }
         //For single quote:
         if in_single_quote{
             if ch =='\'' {
@@ -22,6 +30,10 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
             }
         }else{
             match ch{
+                '\\' => {
+                    escaped = true;
+                    in_arg = true;
+                }
                 ' ' | '\t' => {
                     if in_arg {
                         args.push(current.clone());
