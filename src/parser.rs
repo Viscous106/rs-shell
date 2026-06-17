@@ -3,12 +3,20 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current = String::new();
     let mut in_single_quote = false;
+    let mut in_double_quote = false;
     let mut in_arg = false;
 
     for ch in input.chars(){
+        //For single quote:
         if in_single_quote{
             if ch =='\'' {
                 in_single_quote = false;
+            }else{
+                current.push(ch);
+            }
+        }else if in_double_quote{//For double quote:
+            if ch == '"'{
+                in_double_quote = false;
             }else{
                 current.push(ch);
             }
@@ -23,6 +31,10 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
                 }
                 '\'' => {
                     in_single_quote = true;
+                    in_arg = true;
+                }
+                '"' => {
+                    in_double_quote = true;
                     in_arg = true;
                 }
                 _ => {
