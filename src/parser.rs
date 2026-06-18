@@ -71,3 +71,30 @@ pub fn parse_arguments(input: &str) -> Vec<String> {
     }
     args
 }
+
+//for the pipelines:
+pub fn parse_redirections(args: &[String]) -> (Vec<String>, Option<(String, bool)>, Option<(String, bool)>) {
+    let mut clean = Vec::new();
+    let mut stdout_file = None;
+    let mut stderr_file = None;
+    let mut i = 0;
+    while i < args.len(){
+        if (args[i] == ">" || args[i] == "1>") && i + 1 < args.len(){
+            stdout_file = Some((args[i+1].clone(), false));
+            i+=2;
+        }else if (args[i] == ">>" || args[i] == "1>>") && i + 1 < args.len(){
+            stdout_file = Some((args[i+1].clone(),true));
+            i+=2;
+        }else if args[i] == "2>" && i + 1 < args.len(){
+            stderr_file = Some((args[i+1].clone(),false));
+            i+=2;
+        }else if args[i] == "2>>" && i + 1 < args.len(){
+            stderr_file = Some((args[i+1].clone(),true));
+            i+=2;
+        }else{
+            clean.push(args[i].clone());
+            i+=1;
+        }
+    }
+    (clean, stdout_file, stderr_file)
+}

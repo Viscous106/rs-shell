@@ -17,38 +17,32 @@ fn main() {
         if args.is_empty() {
             continue;
         }
-        
-        let _cmd = &args[0];
-        let _cmd_args = &args[1..];
-        
-        let (args, stdout_redirect, stderr_redirect) = {
-            let mut clean = Vec::new();
-            let mut file = None;
-            let mut stderr_file = None;
-            let mut i = 0;
-            while i < args.len() {
-                if (args[i] == ">" || args[i] == "1>") && i + 1 < args.len() {
-                    file = Some((args[i+1].clone(),false)); // flase as two >> for overwrite 
-                    i += 2;
-                }else if (args[i] == ">>" || args[i] == "1>>") && i+1 < args.len(){
-                    file = Some((args[i+1].clone(),true));
-                    i += 2;
-                }else if args[i] == "2>" && i+1 < args.len(){
-                    stderr_file = Some((args[i+1].clone(),false));
-                    i += 2;
-                }else if args[i] == "2>>" && i+1 < args.len(){
-                    stderr_file = Some((args[i+1].clone(),true));
-                    i += 2;
-                }else{
-                    clean.push(args[i].clone());
-                    i += 1;
-                }
+
+        let mut parts: Vec<Vec<String>> = Vec::new();
+        let mut current: Vec<String> = Vec::new();
+        for arg in args {
+            if arg == "|" {
+                parts.push(current);
+                current = Vec::new();
+            }else{
+                current.push(arg);
             }
-            (clean,file,stderr_file)
-        };
+        }
+        parts.push(current);
+
+        if parts.len() > 1 {
+            exec::run_pipeline(parts);
+            continue;
+        }
+
+        let (args, stdout_redirect, stderr_redirect) = parser::parse_redirections(&parts[0]);
+        if args.is_empty(){
+            continue;
+        }
         let cmd = &args[0];
         let cmd_args = &args[1..];
-        if let Some((ref path,append)) = stderr_redirect{
+        
+        if let Some((ref path, append)) = stderr_redirect {
             std::fs::OpenOptions::new()
                 .create(true)
                 .append(append)
@@ -56,8 +50,8 @@ fn main() {
                 .truncate(!append)
                 .open(path)
                 .unwrap();
-        } 
-        let mut out: Box<dyn Write> = match &stdout_redirect{
+        }
+        let mut out: Box<dyn Write> = match &stdout_redirect {
             Some((path, append)) => Box::new(
                 std::fs::OpenOptions::new()
                     .create(true)
@@ -67,17 +61,18 @@ fn main() {
                     .open(path)
                     .unwrap()
             ),
-            None       => Box::new(io::stdout()),
+            None => Box::new(io::stdout()),
         };
-        if commands::handle_builtin(cmd, cmd_args,&mut *out) {
+
+        if commands::handle_builtin(cmd, cmd_args, &mut *out){
             continue;
         }
-        
-        if exec::get_executable_path(cmd).is_some() {
-            if let Err(e) = exec::run_external_command(cmd, cmd_args,stdout_redirect, stderr_redirect) {
-                eprintln!("Failed to execute process: {}", e);
+
+        if exec::get_executable_path(cmd).is_some(){
+            if let Err(e) = exec::run_external_command(cmd, cmd_args, stdout_redirect, stderr_redirect){
+                eprintln!("Falied to execute process: {}", e);
             }
-        } else {
+        }else{
             println!("{}: command not found", cmd);
         }
     }

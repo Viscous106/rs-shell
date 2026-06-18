@@ -58,3 +58,55 @@ pub fn run_external_command(cmd: &str, args: &[String], stdout_file: Option<(Str
         .stderr(stderr)
         .status()
 }
+
+/// pipelines:
+pub fn run_pipeline(parts: Vec<Vec<String>>){
+    let mut prev_stdout: Option<std::process::ChildStdout> = None;
+    let mut children: Vec<std::process::Child> = Vec::new();
+    let last = parts.len() - 1;
+
+    for (i, part) in parts.iter().enumerate() {
+        let (args, stdout_redir, _) = crate::parser::parse_redirections(part);
+        if args.is_empty() {continue;}
+        let cmd = &args[0];
+        let cmd_args = &args[1..];
+
+        let stdin = match prev_stdout.take(){
+            Some(s) => std::process::Stdio::from(s),
+            None    => std::process::Stdio::inherit(),
+        };
+        
+        let stdout = if i == last {
+            match stdout_redir {
+                Some((path, append)) => std::process::Stdio::from(
+                    std::fs::OpenOptions::new()
+                        .create(true)
+                        .append(append)
+                        .write(!append)
+                        .truncate(!append)
+                        .open(path)
+                        .unwrap()
+                ),
+                None => std::process::Stdio::inherit(),
+            }
+        }else{
+            std::process::Stdio::piped()
+        };
+        if let Some(exe_path) = get_executable_path(cmd) {
+            let mut child = std::process::Command::new(exe_path)
+                .args(cmd_args)
+                .stdin(stdin)
+                .stdout(stdout)
+                .spawn()
+                .expect("Failed to spawn pipeline command");
+            prev_stdout = child.stdout.take();
+            children.push(child);
+        }else{
+            eprintln!("{}: command not found", cmd);
+            break;
+        }
+    }
+    for mut child in children{
+        let _ = child.wait();
+    }
+}
