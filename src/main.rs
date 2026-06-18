@@ -34,7 +34,10 @@ fn main() {
                     file = Some((args[i+1].clone(),true));
                     i += 2;
                 }else if args[i] == "2>" && i+1 < args.len(){
-                    stderr_file = Some(args[i+1].clone());
+                    stderr_file = Some((args[i+1].clone(),false));
+                    i += 2;
+                }else if args[i] == "2>>" && i+1 < args.len(){
+                    stderr_file = Some((args[i+1].clone(),true));
                     i += 2;
                 }else{
                     clean.push(args[i].clone());
@@ -45,11 +48,15 @@ fn main() {
         };
         let cmd = &args[0];
         let cmd_args = &args[1..];
-        
-        if let Some(ref path) = stderr_redirect {
-            std::fs::File::create(path).unwrap();
-        }
-
+        if let Some((ref path,append)) = stderr_redirect{
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(append)
+                .write(!append)
+                .truncate(!append)
+                .open(path)
+                .unwrap();
+        } 
         let mut out: Box<dyn Write> = match &stdout_redirect{
             Some((path, append)) => Box::new(
                 std::fs::OpenOptions::new()
