@@ -28,7 +28,10 @@ fn main() {
             let mut i = 0;
             while i < args.len() {
                 if (args[i] == ">" || args[i] == "1>") && i + 1 < args.len() {
-                    file = Some(args[i+1].clone());
+                    file = Some((args[i+1].clone(),false)); // flase as two >> for overwrite 
+                    i += 2;
+                }else if (args[i] == ">>" || args[i] == "1>>") && i+1 < args.len(){
+                    file = Some((args[i+1].clone(),true));
                     i += 2;
                 }else if args[i] == "2>" && i+1 < args.len(){
                     stderr_file = Some(args[i+1].clone());
@@ -48,7 +51,15 @@ fn main() {
         }
 
         let mut out: Box<dyn Write> = match &stdout_redirect{
-            Some(path) => Box::new(std::fs::File::create(path).unwrap()),
+            Some((path, append)) => Box::new(
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(*append)
+                    .write(!*append)
+                    .truncate(!*append)
+                    .open(path)
+                    .unwrap()
+            ),
             None       => Box::new(io::stdout()),
         };
         if commands::handle_builtin(cmd, cmd_args,&mut *out) {
