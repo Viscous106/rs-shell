@@ -1,0 +1,12 @@
+{
+  "id": "register-jobs-builtin",
+  "title": "Register jobs builtin with empty implementation",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "shell",
+  "currentPhase": "completed",
+  "nextAction": "No submit or push requested",
+  "createdAt": "2026-06-19T07:25:56Z",
+  "branch": "master"
+}

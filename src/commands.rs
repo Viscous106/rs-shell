@@ -60,11 +60,15 @@ pub fn handle_builtin(cmd: &str, args: &[String], output: &mut dyn Write) -> boo
             }
             true
         }
+        "jobs" => {
+            // No output when there are no background jobs
+            true
+        }
         _ => false,
     }
 }
 
 /// Helper function to check if a command is a builtin.
 pub fn is_builtin(cmd: &str) -> bool {
-    matches!(cmd, "exit" | "echo" | "pwd" | "cd" | "type")
+    matches!(cmd, "exit" | "echo" | "pwd" | "cd" | "type" | "jobs")
 }
