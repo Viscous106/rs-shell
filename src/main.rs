@@ -35,8 +35,15 @@ fn main() {
             continue;
         }
 
-        let (args, stdout_redirect, stderr_redirect) = parser::parse_redirections(&parts[0]);
+        let (mut args, stdout_redirect, stderr_redirect) = parser::parse_redirections(&parts[0]);
         if args.is_empty(){
+            continue;
+        }
+        let background = matches!(args.last().map(|s| s.as_str()), Some("&"));
+        if background {
+            args.pop();
+        }
+        if args.is_empty() {
             continue;
         }
         let cmd = &args[0];
@@ -69,7 +76,16 @@ fn main() {
         }
 
         if exec::get_executable_path(cmd).is_some(){
-            if let Err(e) = exec::run_external_command(cmd, cmd_args, stdout_redirect, stderr_redirect){
+            if background {
+                match exec::spawn_external_command(cmd, cmd_args, stdout_redirect, stderr_redirect) {
+                    Ok(child) => {
+                        println!("[1] {}", child.id());
+                    }
+                    Err(e) => {
+                        eprintln!("Falied to execute process: {}", e);
+                    }
+                }
+            } else if let Err(e) = exec::run_external_command(cmd, cmd_args, stdout_redirect, stderr_redirect){
                 eprintln!("Falied to execute process: {}", e);
             }
         }else{

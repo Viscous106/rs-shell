@@ -30,6 +30,12 @@ pub fn get_executable_path(cmd: &str) -> Option<PathBuf> {
 
 /// Executes an external command.
 pub fn run_external_command(cmd: &str, args: &[String], stdout_file: Option<(String, bool)>,stderr_file: Option<(String, bool)>) -> Result<std::process::ExitStatus, std::io::Error> {
+    let mut child = spawn_external_command(cmd, args, stdout_file, stderr_file)?;
+    child.wait()
+}
+
+/// Spawns an external command and returns the child handle without waiting.
+pub fn spawn_external_command(cmd: &str, args: &[String], stdout_file: Option<(String, bool)>,stderr_file: Option<(String, bool)>) -> Result<std::process::Child, std::io::Error> {
     let stdout = match stdout_file {
         Some((path, append)) => Stdio::from(
             std::fs::OpenOptions::new()
@@ -56,7 +62,7 @@ pub fn run_external_command(cmd: &str, args: &[String], stdout_file: Option<(Str
         .args(args)
         .stdout(stdout)
         .stderr(stderr)
-        .status()
+        .spawn()
 }
 
 /// pipelines:

@@ -1,0 +1,12 @@
+{
+  "id": "start-background-jobs",
+  "title": "Start external commands in the background with ampersand",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "shell",
+  "currentPhase": "completed",
+  "nextAction": "No archive or submit requested",
+  "createdAt": "2026-06-19T07:30:30Z",
+  "branch": "master"
+}
